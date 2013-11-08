@@ -29,9 +29,6 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
     static $charset    		 		= "UTF-8"; // 字符编码
     static $sign_method 			= "MD5"; // 签名方法，目前仅支持MD5
     
-
-    static $upmp_trade_url   	 	= "http://222.66.233.198:8080/gateway/merchant/trade";
-    static $upmp_query_url    	 	= "http://222.66.233.198:8080/gateway/merchant/query";  
     
     const VERIFY_HTTPS_CERT 		= false;
     
@@ -300,8 +297,11 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @return 是否成功
      */
     static function trade($req, &$resp) {
+		$unionpay = Mage::getModel('unionpay/payment');
+		$upmp_trade_url=$unionpay->getConfigData('gateway').'trade';
+        
     	$nvp = self::buildReq($req);
-    	$respString = $this->postdata(upmp_config::$upmp_trade_url, $nvp);
+    	$respString = $this->postdata($upmp_trade_url, $nvp);
     	return self::verifyResponse($respString, $resp);
     }
     
@@ -312,8 +312,11 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
 	 * @return 是否成功
 	 */
     static function query($req, &$resp) {
+		$unionpay = Mage::getModel('unionpay/payment');
+		$upmp_query_url=$unionpay->getConfigData('gateway').'query';
+        
     	$nvp = self::buildReq($req);
-    	$respString = $this->postdata(upmp_config::$upmp_query_url, $nvp);
+    	$respString = $this->postdata($upmp_query_url, $nvp);
     	return self::verifyResponse($respString, $resp);
     }
     
