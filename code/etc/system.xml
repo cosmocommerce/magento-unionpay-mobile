@@ -71,6 +71,9 @@
                         </service_type>
                         <gateway translate="label">
                             <label>Gateway</label>
+							  <comment>
+								<![CDATA[http://222.66.233.198:8080/gateway/merchant]]>
+							  </comment>
                             <frontend_type>text</frontend_type>
                             <sort_order>4</sort_order>
                             <show_in_default>1</show_in_default>
