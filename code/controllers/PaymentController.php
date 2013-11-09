@@ -121,14 +121,19 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
 		$mer_id=$unionpay->getConfigData('partner_id');
 		$security_key=$unionpay->getConfigData('security_code');
 
+        Mage::log('mer_id');
+        Mage::log($mer_id);
+        Mage::log('security_key');
+        Mage::log($security_key);
     
         if(isset($postData['orderId'])){
+            $order = Mage::getModel('sales/order');
             $order=$order->loadByIncrementId($postData['orderId']);   
-
-            
+ 
+            Mage::log('after order load');
             if($order->getId()){
-                $transamt = sprintf('%.2f',$order->getGrandTotal());
-            
+                Mage::log('order load succesfully');
+                $transamt = sprintf('%.2f',$order->getGrandTotal())*100;
             
                 $req=array();
                 $req['version']     		= self::$version; // 版本号
@@ -145,14 +150,20 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
                 $req['orderCurrency'] 		= "156"; // 交易币种(可选)
                 $req['reqReserved'] 		= "透传信息"; // 请求方保留域(可选，用于透传商户信息)
 
+            
                 // 保留域填充方法
                 $merReserved['customerid']   		= "商户保留域";
-                $req['merReserved']   		= UpmpService::buildReserved($merReserved); // 商户保留域(可选)
+                $req['merReserved']   		= self::buildReserved($merReserved); // 商户保留域(可选)
 
-                $resp = array ();
-                $validResp = UpmpService::trade($req, $resp);
-
+                Mage::log('验证请求数据');
                 Mage::log($req);
+                
+                
+                $resp = array ();
+                $validResp = self::trade($req, $resp);
+
+                Mage::log('验证返回数据');
+                Mage::log($resp);
                 // 商户的业务逻辑
                 if ($validResp){
                     Mage::log('服务器应答签名验证成功');
@@ -160,11 +171,15 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
                     //echo '服务器应答签名验证成功';
                     if(isset($resp['tn'])){
                         echo $resp['tn'];
+                        exit();
                     }
                 }else {
                     Mage::log('服务器应答签名验证失败');
                 }
                 Mage::log($resp);
+            }else{
+            
+                Mage::log('order load error');
             }
         }
                 
@@ -297,11 +312,17 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @return 是否成功
      */
     static function trade($req, &$resp) {
+        Mage::log('trade');
+        Mage::log($req);
 		$unionpay = Mage::getModel('unionpay/payment');
 		$upmp_trade_url=$unionpay->getConfigData('gateway').'trade';
         
+        Mage::log('upmp_trade_url');
+        Mage::log($upmp_trade_url);
     	$nvp = self::buildReq($req);
-    	$respString = $this->postdata($upmp_trade_url, $nvp);
+    	$respString = self::postdata($upmp_trade_url, $nvp);
+        Mage::log('返回值');
+        Mage::log($respString);
     	return self::verifyResponse($respString, $resp);
     }
     
@@ -312,11 +333,13 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
 	 * @return 是否成功
 	 */
     static function query($req, &$resp) {
+        Mage::log('query');
+        Mage::log($req);
 		$unionpay = Mage::getModel('unionpay/payment');
 		$upmp_query_url=$unionpay->getConfigData('gateway').'query';
         
     	$nvp = self::buildReq($req);
-    	$respString = $this->postdata($upmp_query_url, $nvp);
+    	$respString = self::postdata($upmp_query_url, $nvp);
     	return self::verifyResponse($respString, $resp);
     }
     
@@ -326,16 +349,18 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @return 请求字符串
      */
     static function buildReq($req) {
+        Mage::log('buildReq');
+        Mage::log($req);
     	//除去待签名参数数组中的空值和签名参数
-    	$filteredReq = $this->paraFilter($req);
+    	$filteredReq = self::paraFilter($req);
     	// 生成签名结果
-    	$signature = $this->buildSignature($filteredReq);
+    	$signature = self::buildSignature($filteredReq);
     	
     	// 签名结果与签名方式加入请求
-    	$filteredReq[upmp_config::SIGNATURE] = $signature;
-    	$filteredReq[upmp_config::SIGN_METHOD] = upmp_config::$sign_method;
+    	$filteredReq[self::SIGNATURE] = $signature;
+    	$filteredReq[self::SIGN_METHOD] = self::$sign_method;
     	
-    	return $this->createLinkstring($filteredReq, false, true);
+    	return self::createLinkstring($filteredReq, false, true);
     }
     
     /**
@@ -344,7 +369,13 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @return 保留域
      */
     static function buildReserved($req) {
-    	$prestr = "{".$this->createLinkstring($req, true, true)."}";
+        Mage::log('buildReserved');
+        Mage::log($req);
+        Mage::log('createLinkstring');
+        $buildstring=self::createLinkstring($req, true, true);
+        Mage::log($buildstring);
+    	$prestr = "{".$buildstring."}";
+        Mage::log($prestr);
     	return $prestr;
     }
     
@@ -379,8 +410,8 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
     static function verifySignature($para) {
     	$respSignature = $para[self::SIGNATURE];
     	// 除去数组中的空值和签名参数
-    	$filteredReq = $this->paraFilter($para);
-    	$signature = $this->buildSignature($filteredReq);
+    	$filteredReq = self::paraFilter($para);
+    	$signature = self::buildSignature($filteredReq);
     	if ("" != $respSignature && $respSignature==$signature) {
     		return true;
     	}else {
@@ -396,7 +427,9 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @param para 请求要素
      * @return 去掉空值与签名参数后的请求要素
      */
-    public function paraFilter($para) {
+    static function paraFilter($para) {
+        Mage::log('paraFilter');
+        Mage::log($para);
         $result = array ();
         while ( list ( $key, $value ) = each ( $para ) ) {
             if ($key == self::SIGNATURE || $key == self::SIGN_METHOD || $value == "") {
@@ -413,11 +446,13 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @param req 需要签名的要素
      * @return 签名结果字符串
      */
-    public function buildSignature($req) {
+    static function buildSignature($req) {
+        Mage::log('buildSignature');
+        Mage::log($req);
 		$unionpay = Mage::getModel('unionpay/payment');
 		$security_key=$unionpay->getConfigData('security_code');
         
-        $prestr = $this->createLinkstring($req, true, false);
+        $prestr = self::createLinkstring($req, true, false);
         $prestr = $prestr.self::QSTRING_SPLIT.md5($security_key);
         return md5($prestr);
     }
@@ -429,10 +464,12 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @param encode 是否需要URL编码
      * @return 拼接成的字符串
      */
-    public function createLinkString($para, $sort, $encode) {
+    static function createLinkString($para, $sort, $encode) {
+        Mage::log('createLinkString in');
+        Mage::log($para);
         $linkString  = "";
         if ($sort){
-            $para = $this->argSort($para);
+            $para = self::argSort($para);
         }
         while (list ($key, $value) = each ($para)) {
             if ($encode){
@@ -443,6 +480,7 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
         //去掉最后一个&字符
         $linkString = substr($linkString,0,count($linkString)-2);
         
+        Mage::log($linkString);
         return $linkString;
     }
 
@@ -451,7 +489,7 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @param $para 排序前的数组
      * return 排序后的数组
      */
-    public function argSort($para) {
+    static function argSort($para) {
         ksort($para);
         reset($para);
         return $para;
@@ -469,7 +507,7 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
     *	  string: curl return data
     *
     */
-    public function postdata($url, $content = null)
+    static function postdata($url, $content = null)
     {
         if (function_exists("curl_init")) {
             $curl = curl_init();
