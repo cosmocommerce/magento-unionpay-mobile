@@ -40,25 +40,6 @@
         </routers>
     </admin>
     <adminhtml>
-		<menu>
-			<unionpay translate="title" module="unionpay">
-				<title>unionpay</title>
-				<sort_order>9999</sort_order>
-				<children>
-                    <shopper translate="title" module="unionpay">
-                        <title>Shopper</title>
-                        <sort_order>10</sort_order>
-                        <children>
-                            <unionpay translate="title" module="unionpay">
-                                <title>Categories Color Schemes</title>
-                                <sort_order>120</sort_order>
-                                <action>unionpay/adminhtml_unionpay</action>
-                            </unionpay>
-                        </children>
-                    </shopper>
-				</children>
-			</unionpay>
-		</menu>
 		<acl>
             <resources>
                 <all>
@@ -73,7 +54,7 @@
                 </admin>
             </resources>
         </acl>
-    </adminhtml>   
+    </adminhtml>     
     <global>
         <models>
             <unionpay>

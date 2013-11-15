@@ -40,7 +40,7 @@ class CosmoCommerce_Unionpay_Block_Adminhtml_Sales_Order_View extends Mage_Admin
         $order = $this->getOrder(); 
         $this->_addButton('unionpay_query', array(
             'label'     => Mage::helper('sales')->__('Unionpay Order Query'),
-            'onclick'   => 'setLocation(\'' . $this->getUrl('*/unionpay/payment/query',array('order_increcement'=>$order->getIncrementId())) . '\')',
+            'onclick'   => 'setLocation(\'' . $this->getUrl('unionpay/adminhtml_query/query',array('order_increcement'=>$order->getIncrementId())) . '\')',
             'class'     => 'go'
         ));
     }
