@@ -284,7 +284,7 @@ class CosmoCommerce_Unionpay_Adminhtml_QueryController extends Mage_Adminhtml_Co
             $req['merId']       	= $mer_id; // 商户代码
          
             $req['orderTime']   	= date('Ymdhjs',strtotime($order->getCreatedAt())); // 交易开始日期时间yyyyMMddHHmmss或yyyyMMdd
-            $req['orderNumber'] 	= $order->getIncrementId(); // 订单号
+            $req['orderNumber'] 	= $order->getRealOrderId(); // 订单号
 
             // 保留域填充方法
             $merReserved['reserved']   	= "reserved";
@@ -296,10 +296,14 @@ class CosmoCommerce_Unionpay_Adminhtml_QueryController extends Mage_Adminhtml_Co
 
             
             // 商户的业务逻辑
-            $msg="";
+            $msg="等待银联返回信息";
             if(isset($resp['respMsg'])){
                 $msg=($resp['respMsg']);
             }
+            
+            print_r($req);
+            print_r($resp);
+            exit();
             if ($validResp){ 
                 Mage::getSingleton('adminhtml/session')->addError($msg);
                 $this->_redirect('adminhtml/sales_order/view', array('order_id' => $orderId));

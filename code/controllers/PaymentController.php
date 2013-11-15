@@ -115,24 +115,18 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
         {
             return;
         }
-        Mage::log($postData);
+        Mage::log($postData,null,'unionpay_mobile.log');
 		$unionpay = Mage::getModel('unionpay/payment');
 		$gateway = $unionpay->getConfigData('gateway');
 		$mer_id=$unionpay->getConfigData('partner_id');
 		$security_key=$unionpay->getConfigData('security_code');
 
-        Mage::log('mer_id');
-        Mage::log($mer_id);
-        Mage::log('security_key');
-        Mage::log($security_key);
     
         if(isset($postData['orderId'])){
             $order = Mage::getModel('sales/order');
             $order=$order->loadByIncrementId($postData['orderId']);   
  
-            Mage::log('after order load');
             if($order->getId()){
-                Mage::log('order load succesfully');
                 $transamt = sprintf('%.2f',$order->getGrandTotal())*100;
             
                 $req=array();
@@ -143,7 +137,7 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
                 $req['backEndUrl']      	= Mage::getUrl('unionpay/payment/upmpnotify'); // 通知URL
                 $req['frontEndUrl']     	= Mage::getUrl('unionpay/payment/upmpnotify'); // 前台通知URL(可选)
                 $req['orderDescription']	= $order->getRealOrderId();// 订单描述(可选)
-                $req['orderTime']   		= date("YmdHis"); // 交易开始日期时间yyyyMMddHHmmss
+                $req['orderTime']   		= date('Ymdhjs',strtotime($order->getCreatedAt())); // 交易开始日期时间yyyyMMddHHmmss
                 $req['orderTimeout']   		= ""; // 订单超时时间yyyyMMddHHmmss(可选)
                 $req['orderNumber'] 		= $order->getRealOrderId(); //订单号(商户根据自己需要生成订单号)
                 $req['orderAmount'] 		= $transamt; // 订单金额
@@ -155,18 +149,18 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
                 $merReserved['customerid']   		= "商户保留域";
                 $req['merReserved']   		= self::buildReserved($merReserved); // 商户保留域(可选)
 
-                Mage::log('验证请求数据');
-                Mage::log($req);
+                Mage::log('验证请求数据',null,'unionpay_mobile.log');
+                Mage::log($req,null,'unionpay_mobile.log');
                 
                 
                 $resp = array ();
                 $validResp = self::trade($req, $resp);
 
-                Mage::log('验证返回数据');
-                Mage::log($resp);
+                Mage::log('验证返回数据',null,'unionpay_mobile.log');
+                Mage::log($resp,null,'unionpay_mobile.log');
                 // 商户的业务逻辑
                 if ($validResp){
-                    Mage::log('服务器应答签名验证成功');
+                    Mage::log('服务器应答签名验证成功',null,'unionpay_mobile.log');
                     //echo $req['orderNumber']." ";
                     //echo '服务器应答签名验证成功';
                     if(isset($resp['tn'])){
@@ -174,12 +168,10 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
                         exit();
                     }
                 }else {
-                    Mage::log('服务器应答签名验证失败');
+                    Mage::log('服务器应答签名验证失败',null,'unionpay_mobile.log');
                 }
-                Mage::log($resp);
             }else{
-            
-                Mage::log('order load error');
+                Mage::log('order load error',null,'unionpay_mobile.log');
             }
         }
                 
@@ -202,19 +194,19 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
             return;
         }
         
-        Mage::log($postData);
+        Mage::log($postData,null,'unionpay_mobile.log'););
 		$unionpay = Mage::getModel('unionpay/payment');
 		$partner=$unionpay->getConfigData('partner_id');
 		$security_code=$unionpay->getConfigData('security_code');
 		$gateway = $unionpay->getConfigData('gateway');
 
         if (self::verifySignature($postData)){// 服务器签名验证成功
-            Mage::log('服务器签名验证成功');
+            Mage::log('服务器签名验证成功',null,'unionpay_mobile.log'););
             //请在这里加上商户的业务逻辑程序代码
             //获取通知返回参数，可参考接口文档中通知参数列表(以下仅供参考)
             $transStatus = $postData['transStatus'];// 交易状态
             if (""!=$transStatus && "00"==$transStatus){
-                Mage::log('交易处理成功');
+                Mage::log('交易处理成功',null,'unionpay_mobile.log'););
                 $order = Mage::getModel('sales/order');
 				$order->loadByIncrementId($postData['orderNumber']);
                 if ($order->getState() == 'new' || $order->getState() != 'processing' || $order->getState() == 'pending_payment' || $order->getState() == 'payment_review') {
@@ -231,11 +223,11 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
                     }
                 }
             }else {
-                Mage::log('交易处理不成功');
+                Mage::log('交易处理不成功',null,'unionpay_mobile.log'););
             }
         }else {// 服务器签名验证失败
             echo "fail";
-            Mage::log('服务器签名验证失败');
+            Mage::log('服务器签名验证失败',null,'unionpay_mobile.log'););
         }
     }
  
@@ -311,18 +303,12 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @param resp 应答要素
      * @return 是否成功
      */
-    static function trade($req, &$resp) {
-        Mage::log('trade');
-        Mage::log($req);
+    static function trade($req, &$resp) { 
 		$unionpay = Mage::getModel('unionpay/payment');
 		$upmp_trade_url=$unionpay->getConfigData('gateway').'trade';
-        
-        Mage::log('upmp_trade_url');
-        Mage::log($upmp_trade_url);
+         
     	$nvp = self::buildReq($req);
-    	$respString = self::postdata($upmp_trade_url, $nvp);
-        Mage::log('返回值');
-        Mage::log($respString);
+    	$respString = self::postdata($upmp_trade_url, $nvp); 
     	return self::verifyResponse($respString, $resp);
     }
     
@@ -332,9 +318,7 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
 	 * @param resp 应答要素
 	 * @return 是否成功
 	 */
-    static function query($req, &$resp) {
-        Mage::log('query');
-        Mage::log($req);
+    static function query($req, &$resp) { 
 		$unionpay = Mage::getModel('unionpay/payment');
 		$upmp_query_url=$unionpay->getConfigData('gateway').'query';
         
@@ -348,9 +332,7 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @param req 请求要素
      * @return 请求字符串
      */
-    static function buildReq($req) {
-        Mage::log('buildReq');
-        Mage::log($req);
+    static function buildReq($req) { 
     	//除去待签名参数数组中的空值和签名参数
     	$filteredReq = self::paraFilter($req);
     	// 生成签名结果
@@ -368,14 +350,9 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @param req 请求要素
      * @return 保留域
      */
-    static function buildReserved($req) {
-        Mage::log('buildReserved');
-        Mage::log($req);
-        Mage::log('createLinkstring');
-        $buildstring=self::createLinkstring($req, true, true);
-        Mage::log($buildstring);
-    	$prestr = "{".$buildstring."}";
-        Mage::log($prestr);
+    static function buildReserved($req) { 
+        $buildstring=self::createLinkstring($req, true, true); 
+    	$prestr = "{".$buildstring."}"; 
     	return $prestr;
     }
     
@@ -427,9 +404,7 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @param para 请求要素
      * @return 去掉空值与签名参数后的请求要素
      */
-    static function paraFilter($para) {
-        Mage::log('paraFilter');
-        Mage::log($para);
+    static function paraFilter($para) { 
         $result = array ();
         while ( list ( $key, $value ) = each ( $para ) ) {
             if ($key == self::SIGNATURE || $key == self::SIGN_METHOD || $value == "") {
@@ -446,9 +421,7 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @param req 需要签名的要素
      * @return 签名结果字符串
      */
-    static function buildSignature($req) {
-        Mage::log('buildSignature');
-        Mage::log($req);
+    static function buildSignature($req) { 
 		$unionpay = Mage::getModel('unionpay/payment');
 		$security_key=$unionpay->getConfigData('security_code');
         
@@ -464,9 +437,7 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
      * @param encode 是否需要URL编码
      * @return 拼接成的字符串
      */
-    static function createLinkString($para, $sort, $encode) {
-        Mage::log('createLinkString in');
-        Mage::log($para);
+    static function createLinkString($para, $sort, $encode) { 
         $linkString  = "";
         if ($sort){
             $para = self::argSort($para);
