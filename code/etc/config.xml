@@ -63,6 +63,11 @@
             </unionpay_read>
         </resources>
         <blocks>
+			<adminhtml>
+				<rewrite>
+					<sales_order_view>CosmoCommerce_Unionpay_Block_Adminhtml_Sales_Order_View</sales_order_view>
+				</rewrite>
+			</adminhtml>
             <unionpay><class>CosmoCommerce_Unionpay_Block</class></unionpay>
     	</blocks>
         <payment>
