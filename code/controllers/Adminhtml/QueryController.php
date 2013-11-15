@@ -1,5 +1,5 @@
 <?php
-class CosmoCommerce_Unionpay_Adminhtml_Sales_Order_EditController extends Mage_Adminhtml_Controller_Action
+class CosmoCommerce_Unionpay_Adminhtml_QueryController extends Mage_Adminhtml_Controller_Action
 {
     public function queryAction()
     {
