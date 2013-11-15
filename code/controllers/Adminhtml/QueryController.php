@@ -297,18 +297,19 @@ class CosmoCommerce_Unionpay_Adminhtml_QueryController extends Mage_Adminhtml_Co
             
             // 商户的业务逻辑
             $msg="等待银联返回信息";
-            if(isset($resp['respMsg'])){
-                $msg=($resp['respMsg']);
-            }
-            
-            print_r($req);
-            print_r($resp);
-            exit();
+            Mage::log($req,null,'unionpay_mobile.log');
+            Mage::log($resp,null,'unionpay_mobile.log');
             if ($validResp){ 
-                Mage::getSingleton('adminhtml/session')->addError($msg);
-                $this->_redirect('adminhtml/sales_order/view', array('order_id' => $orderId));
+                if(($resp['transStatus']=="00")){
+                    Mage::getSingleton('adminhtml/session')->addError('订单已支付成功');
+                    $this->_redirect('adminhtml/sales_order/view', array('order_id' => $orderId));
+                }else{
+                    Mage::getSingleton('adminhtml/session')->addError('订单查询错误');
+                    $this->_redirect('adminhtml/sales_order/view', array('order_id' => $orderId));
+                }
+                
             }else {
-                Mage::getSingleton('adminhtml/session')->addError($msg);
+                Mage::getSingleton('adminhtml/session')->addError('系统验证错误');
                 $this->_redirect('adminhtml/sales_order/view', array('order_id' => $orderId));
                 
             }

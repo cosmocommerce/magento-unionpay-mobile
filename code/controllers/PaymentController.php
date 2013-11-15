@@ -194,19 +194,19 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
             return;
         }
         
-        Mage::log($postData,null,'unionpay_mobile.log'););
+        Mage::log($postData,null,'unionpay_mobile.log');
 		$unionpay = Mage::getModel('unionpay/payment');
 		$partner=$unionpay->getConfigData('partner_id');
 		$security_code=$unionpay->getConfigData('security_code');
 		$gateway = $unionpay->getConfigData('gateway');
 
         if (self::verifySignature($postData)){// 服务器签名验证成功
-            Mage::log('服务器签名验证成功',null,'unionpay_mobile.log'););
+            Mage::log('服务器签名验证成功',null,'unionpay_mobile.log');
             //请在这里加上商户的业务逻辑程序代码
             //获取通知返回参数，可参考接口文档中通知参数列表(以下仅供参考)
             $transStatus = $postData['transStatus'];// 交易状态
             if (""!=$transStatus && "00"==$transStatus){
-                Mage::log('交易处理成功',null,'unionpay_mobile.log'););
+                Mage::log('交易处理成功',null,'unionpay_mobile.log');
                 $order = Mage::getModel('sales/order');
 				$order->loadByIncrementId($postData['orderNumber']);
                 if ($order->getState() == 'new' || $order->getState() != 'processing' || $order->getState() == 'pending_payment' || $order->getState() == 'payment_review') {
@@ -223,11 +223,11 @@ class CosmoCommerce_Unionpay_PaymentController extends Mage_Core_Controller_Fron
                     }
                 }
             }else {
-                Mage::log('交易处理不成功',null,'unionpay_mobile.log'););
+                Mage::log('交易处理不成功',null,'unionpay_mobile.log');
             }
         }else {// 服务器签名验证失败
             echo "fail";
-            Mage::log('服务器签名验证失败',null,'unionpay_mobile.log'););
+            Mage::log('服务器签名验证失败',null,'unionpay_mobile.log');
         }
     }
  
