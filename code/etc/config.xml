@@ -28,6 +28,17 @@
             <version>1.5.0</version>
         </CosmoCommerce_Unionpay>
     </modules>
+    <admin>
+        <routers>
+			<unionpay>
+				<use>admin</use>
+				<args>
+					<module>CosmoCommerce_Unionpay</module>
+					<frontName>unionpay</frontName>
+				</args>
+			</unionpay>
+        </routers>
+    </admin>
     <global>
         <models>
             <unionpay>
